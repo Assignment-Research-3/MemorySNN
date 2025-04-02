@@ -1,0 +1,5 @@
+선행 연구 저자에게 받은 코드를 분석하고 이산적인 STDP를 옮길 계획을 세웠다.
+가장 논의가 심하게 되었던 부분은 Apost와 Apre를 어떻게 다룰 것인가이었다.
+선행 연구 Song and Abbott (2001)와 Song, Miller and Abbott (2000)에선 Apre는 시냅스마다, Apost는 뉴런마다 저장했는데, 우리의 알고리즘에선 필요가 없다고행 연구 저자에게 받은 코드를 분석하고 이산적인 STDP를 옮길 계획을 세웠다.
+가장 논의가 심하게 되었던 부분은 Apost와 Apre를 어떻게 다룰 것인가이었다.
+선행 연구 Song and Abbott (2001)와 Song, Miller and Abbott (2000)에선 Apre는 시냅스마다, Apost는 뉴런마다 저장했는데, 우리의 알고리즘에선 각 뉴런마다 Apre와 Apost를 저장시키기로 했다.
