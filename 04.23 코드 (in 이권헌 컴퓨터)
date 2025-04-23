@@ -1,0 +1,252 @@
+""" STDP based Associative Memory Neural Network """
+
+# 필요 패키지 준비 및 모듈 구성
+
+from glob import glob
+from PIL import Image
+
+import matplotlib.pyplot as plt
+import numpy as np
+from tqdm import tqdm
+
+IMAGE_SIZE = 32  # size of images (width & height)
+IMAGE_PIXEL_THRESHOLD = .05  # threshold for pixel values
+
+
+def gram_schmidt_process(V: np.ndarray) -> np.ndarray:
+    n, N = V.shape
+    U = np.zeros((n, N), dtype=np.float64)
+    U[0] = V[0] / np.linalg.norm(V[0])
+    for i in range(1, n):    
+        a = np.zeros((N,), dtype=np.float64)
+        for j in range(i):
+            a += np.dot(V[i], U[j]) * U[j]
+        U[i] = V[i] - a
+        U[i] = U[i] / np.linalg.norm(U[i])
+    return U
+
+
+def encode_images(img_paths: str, tags: np.ndarray) -> np.ndarray:
+    """ encode images to neural states (memory components) """
+
+    d = IMAGE_SIZE
+    num_comp = len(img_paths)
+    dim = (d ** 2) * tags.shape[1]
+    mem_comp = np.zeros((num_comp, dim))
+    for i, (img_path, tag) in enumerate(zip(img_paths, tags)):
+        img = Image.open(img_path).convert("L")
+        img = img.resize((d, d))
+        img_values = np.array(img) / 255
+        img_values = (img_values - 0.5) * (2 * IMAGE_PIXEL_THRESHOLD)
+        img_values = np.reshape(img_values, (d ** 2,))
+        mem_comp[i] = np.outer(tag, img_values).reshape(-1)  # tensor product binding
+    return mem_comp
+
+
+def decode_neural_state(spike_count: np.ndarray, tags: np.ndarray) -> plt.Figure:
+    print(spike_count.max(), spike_count.min())
+    spike_count = (spike_count - spike_count.mean()) / spike_count.std()
+    d = IMAGE_SIZE
+    n = len(tags)
+    fig, axes = plt.subplots(1, n, figsize=(1 * n, 1))
+    if len(tags) == 1:
+        axes = [axes]
+    for tag, ax in zip(tags, axes):
+        ax: plt.Axes
+        decoded = tag @ np.reshape(spike_count, (-1, d ** 2))
+        decoded = np.reshape(decoded, (d, d))
+        ax.imshow(decoded, cmap="gray")
+        ax.set_xticks([])
+        ax.set_yticks([])
+    fig.tight_layout()
+    return fig
+
+
+from dataclasses import dataclass
+
+@dataclass
+class NeuronProp:
+    V_rest: float
+    V_th: float
+    tau_m: float
+    E_ex: float
+    tau_e: float
+
+@dataclass
+class SynapseProp:
+    tau_pre: float
+    tau_post: float
+    dA_pre: float
+    dA_post: float
+    g_max: float
+
+class InputGenerator:
+    def __init__(self, N):
+        self.N = N
+
+    def step(self, dt: float) -> np.ndarray:
+        return np.zeros((self.N, ))
+    
+class SineWaveInputGenerator(InputGenerator):
+    def __init__(self, arr: np.ndarray, omega: float):
+        self.xi = np.linspace(0, np.pi, arr.shape[0] + 1)[:-1]
+        self.t = 0.
+        self.omega = omega
+        self.arr = arr
+    
+    def step(self, dt: float) -> np.ndarray:
+        self.t += dt
+        return np.sin(self.t * self.omega - self.xi) @ self.arr
+
+class MemorySNN:
+    def __init__(self, N: int, neuron_prop: NeuronProp, synapse_prop: SynapseProp):
+        self.N = N
+        self.nprop = neuron_prop
+        self.sprop = synapse_prop
+        self.W = np.zeros((N, N))
+        self.V = np.full((N, ), self.nprop.V_rest)
+        self.ge = np.zeros((N, ))
+        self.Apre = np.zeros((N, ))
+        self.Apost = np.zeros((N, ))
+
+    def clear(self):
+        self.V = np.full((self.N, ), self.nprop.V_rest)
+        self.ge = np.zeros((self.N, ))
+        self.Apre = np.zeros((self.N, ))
+        self.Apost = np.zeros((self.N, ))
+
+    def save_W(self, path: str) -> None:
+        np.save(path, self.W)
+
+    def load_W(self, path: str) -> None:
+        self.W = np.load(path)
+
+    def learn_memory(self, input: InputGenerator, steps: int, dt: float) -> np.ndarray:
+        """ learning memory components """
+        for t in tqdm(range(steps)):
+            print(((self.ge * (self.nprop.E_ex - self.V))).sum())
+            self.V += (self.ge * (self.nprop.E_ex - self.V) + input.step(dt)) / (self.nprop.tau_m / dt)
+            self.ge += -self.ge / self.nprop.tau_e * dt
+            self.Apre += -self.Apre / self.sprop.tau_pre * dt
+            self.Apost += -self.Apost / self.sprop.tau_post * dt
+            spiked = self.V > self.nprop.V_th
+            self.V[spiked] = self.nprop.V_rest
+            self.ge += self.W[spiked, :].sum(axis=0) / 310
+            self.Apre[spiked] += self.sprop.dA_pre
+            self.W[spiked, :] = np.clip(self.W[spiked, :] + self.Apost, 0, self.sprop.g_max)
+            self.Apost[spiked] += self.sprop.dA_post
+            self.W[:, spiked] = np.clip(self.W[:, spiked] + self.Apre.reshape(-1, 1), 0, self.sprop.g_max)
+
+
+    def simulate(self, input: InputGenerator, steps: int, dt: float) -> np.ndarray:
+        """ simulating SNN without initialization """
+        spike_count = np.zeros((self.N, ))
+        for t in tqdm(range(steps)):
+            self.V += (self.ge * (self.nprop.E_ex - self.V) + input.step(dt)) / (self.nprop.tau_m / dt)
+            self.ge += -self.ge / self.nprop.tau_e * dt
+            self.Apre += -self.Apre / self.sprop.tau_pre * dt
+            self.Apost += -self.Apost / self.sprop.tau_post * dt
+            spiked = self.V > self.nprop.V_th
+            self.V[spiked] = self.nprop.V_rest
+            self.ge += self.W[spiked, :].sum(axis=0) / 310
+            self.Apre[spiked] += self.sprop.dA_pre
+            self.Apost[spiked] += self.sprop.dA_post
+            spike_count += spiked
+            print(spiked.sum())
+        return spike_count
+    
+    def retrieve_from_cue(self, cue: np.ndarray, tags: np.ndarray) -> None:
+        """ retrieval from cue signal """
+        self.clear()
+        igen = SineWaveInputGenerator(cue, 1.5)
+
+        for i in range(10):
+            spike_count = self.simulate(igen, 100, 0.01)
+            decode_neural_state(spike_count, tags)
+ 모델에 저장할 이미지 준비
+
+img_paths = glob("images/*.png")
+store_img_paths = [p for p in img_paths if "forest" not in p]  # forest 사진 제외 악기 사진 5개 사용
+store_img_paths.sort()
+
+print("Images to store:")
+fig, axes = plt.subplots(1, len(store_img_paths), figsize=(1 * len(store_img_paths), 1))
+for img_path, ax in zip(store_img_paths, axes):
+    ax: plt.Axes
+    img = Image.open(img_path).convert("L").resize((IMAGE_SIZE, IMAGE_SIZE))  # (32 x 32로 resizing)
+    ax.imshow(img, cmap="gray")
+    ax.set_xticks([])
+    ax.set_yticks([])
+plt.show()
+plt.close()
+
+# Retrieval을 위해 이미지를 디코딩할 memory tag 준비
+n = len(img_paths)
+print(f"Number of images: {n}")
+
+mem_tags = np.random.randn(n, n)
+# Gram-schmidt process로 orthogonalize
+mem_tags = gram_schmidt_process(mem_tags)
+
+np.save("mem_tags.npy", mem_tags)  # saving memory tags (optional)
+# mem_tags = np.load("mem_tags.npy")  # loading memory tags (optional)
+
+print(f"Random generated memory tags:\n{mem_tags}")
+print(f"Memory tags shape: {mem_tags.shape}")
+
+# memory components로 학습용 이미지를 nerual state로 인코딩
+
+mem_components = encode_images(store_img_paths, mem_tags[:-1])
+
+print(f"Encoded memory components shape: {mem_components.shape}")
+
+nprop = NeuronProp(V_rest=0.,
+                   V_th=0.06,
+                   tau_m=0.02,
+                   E_ex=0.06,
+                   tau_e=0.02)
+
+sprop = SynapseProp(tau_pre=0.02,
+                    tau_post=0.02,
+                    dA_pre=0.01,
+                    dA_post= -0.0105,
+                    g_max=10.)
+
+nn = MemorySNN(  # NN 구축
+    N=mem_components.shape[-1],
+    neuron_prop=nprop,
+    synapse_prop=sprop
+)
+
+inputgen = SineWaveInputGenerator(mem_components, 1.5)
+
+print("Learning memory components...")
+nn.learn_memory(inputgen, steps=100, dt=0.01)
+
+nn.save_W("W.npy")  # saving learned weight matrix (optional)
+# nn.load_W("W.npy")  # loading learned weight matrix (optional)
+
+# noisy cue signal 준비
+relevant_noised_cue = mem_components[0] \
+    + 0.01 * np.random.randn(mem_components.shape[-1])  # 노이즈도 추가
+
+print("Relevant noised cue signal:")
+decode_neural_state(relevant_noised_cue, mem_tags[:-1])
+plt.show()
+plt.close()
+
+# Perfect-retrieval 이 일어나는 시점들(t_daggers, from Theorem 3)을 정의
+
+
+t_daggers = [
+    (1 / 1.5) * np.arctan(1.5) + n * np.pi / 1.5
+    for n in range(5)
+]
+
+for i in range(len(t_daggers)):
+    print(f"t_dagger_{i} = {t_daggers[i]:.2f}")
+
+# cue signal을 사용해 perfect-retrieval 타이밍에 이미지 복원
+nn.clear()
+print("Retrieving images from the cue signal...")
+nn.retrieve_from_cue(np.stack([relevant_noised_cue] * 5), mem_tags[:-1])    
