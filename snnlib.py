@@ -84,7 +84,7 @@ class SynapseProp:
     w_ratio: float
 
     def to_cupy(self, dt):
-        return CUDANeuronProp(
+        return CUDASynapseProp(
             tau_pre=cp.asarray(self.tau_pre / dt),
             tau_post=cp.asarray(self.tau_post / dt),
             dA_pre=cp.asarray(self.dA_pre),
