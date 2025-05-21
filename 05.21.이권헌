@@ -1,0 +1,5 @@
+스파이크 발화 빈도에 따라 학습 효율이 매우 달라짐.
+또한 스파이크 발화 빈도는 하이퍼 파라미터에 매우 민감하게 반응하고 최적의 하이퍼 파라미터가 매 학습마다, 동일 학습에서도 매 시간마다 달라짐.
+따라서 스파이크 발화 빈도에 영향을 미치는 하이퍼 파라미터를 조절할 수 있는 알고리즘이 필요함.
+Amin, Hesham H. "Automated adaptive threshold-based feature extraction and learning for spiking neural networks." IEEE Access 9 (2021): 97366-97383.
+위 논문은 스파이크 발화 빈도를 조절하기 위해 역치를 조정하는 알고리즘임. (ATM)
