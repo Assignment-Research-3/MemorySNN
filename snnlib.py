@@ -119,7 +119,7 @@ class InputGenerator:
     
 class SineWaveInputGenerator(InputGenerator):
     def __init__(self, arr: np.ndarray, omega: float):
-        self.xi = np.linspace(0, np.pi, arr.shape[0] + 1)[:-1]
+        self.xi = cp.asarray(np.linspace(0, np.pi, arr.shape[0] + 1)[:-1])
         self.t = 0.
         self.omega = cp.asarray(omega)
         self.arr = cp.asarray(arr)
