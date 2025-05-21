@@ -48,7 +48,7 @@ nn = MemorySNN(  # NN 구축
 inputgen = SineWaveInputGenerator(mem_components, 1.5)
 
 print("Learning memory components...")
-nn.learn_memory(inputgen, steps=1000, dt=0.01)
+nn.learn_memory(inputgen, steps=300, dt=0.01)
 
 # box cue signal 준비
 mem_components = encode_box_images(store_img_paths, mem_tags[:-1])
