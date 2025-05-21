@@ -188,8 +188,8 @@ class MemorySNN:
         ge = cp.asarray(self.ge)
         Apre = cp.asarray(self.Apre)
         Apost = cp.asarray(self.Apost)
-        nprop = self.nprop.to_cupy()
-        sprop = self.sprop.to_cupy()
+        nprop = self.nprop.to_cupy(dt)
+        sprop = self.sprop.to_cupy(dt)
         W = cp.asarray(self.W)
 
         for t in tqdm(range(steps)):
