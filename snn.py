@@ -3,7 +3,7 @@ import os, sys
 
 try:
   os.mkdir('result')
-finally:
+except:
   pass
 
 cp.cuda.Device(1).use()
