@@ -37,6 +37,23 @@ def encode_images(img_paths: str, tags: np.ndarray) -> np.ndarray:
         mem_comp[i] = np.outer(tag, img_values).reshape(-1)  # tensor product binding
     return mem_comp
 
+def encode_box_images(img_paths: str, tags: np.ndarray) -> np.ndarray:
+    """ encode images to neural states (memory components) """
+
+    d = IMAGE_SIZE
+    num_comp = len(img_paths)
+    dim = (d ** 2) * tags.shape[1]
+    mem_comp = np.zeros((num_comp, dim))
+    for i, (img_path, tag) in enumerate(zip(img_paths, tags)):
+        img = Image.open(img_path).convert("L")
+        img = img.resize((d, d))
+        img_values = np.array(img) / 255
+        img_values = (img_values - 0.5) * (2 * IMAGE_PIXEL_THRESHOLD)
+        img_values[13:19, 13:19] = img_values.mean()
+        img_values = np.reshape(img_values, (d ** 2,))
+        mem_comp[i] = np.outer(tag, img_values).reshape(-1)  # tensor product binding
+    return mem_comp
+
 def decode_neural_state(spike_count: np.ndarray, tags: np.ndarray) -> plt.Figure:
     print(spike_count.max(), spike_count.min())
     spike_count = (spike_count - spike_count.mean()) / spike_count.std()
