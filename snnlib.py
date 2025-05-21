@@ -126,7 +126,7 @@ class SineWaveInputGenerator(InputGenerator):
     
     def step(self, dt: float) -> cp.ndarray:
         self.t += dt
-        return cupy.sin(cp.asarray(self.t) * self.omega - self.xi) @ self.arr
+        return cp.sin(cp.asarray(self.t) * self.omega - self.xi) @ self.arr
 
 class MemorySNN:
     def __init__(self, N: int, neuron_prop: NeuronProp, synapse_prop: SynapseProp):
