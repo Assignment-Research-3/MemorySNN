@@ -49,7 +49,7 @@ def encode_box_images(img_paths: str, tags: np.ndarray) -> np.ndarray:
         img = img.resize((d, d))
         img_values = np.array(img) / 255
         img_values = (img_values - 0.5) * (2 * IMAGE_PIXEL_THRESHOLD)
-        img_values[8:24, 8:24] = img_values[10:22, 10:22].mean()
+        img_values[10:22, 10:22] = img_values[10:22, 10:22].mean()
         img_values = np.reshape(img_values, (d ** 2,))
         mem_comp[i] = np.outer(tag, img_values).reshape(-1)  # tensor product binding
     return mem_comp
