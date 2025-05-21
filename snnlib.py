@@ -179,6 +179,7 @@ class MemorySNN:
         nprop = self.nprop.to_cupy(dt)
         sprop = self.sprop.to_cupy(dt)
         W = cp.asarray(self.W)
+        spike_count = np.zeros((steps,), dtype=int)
 
         for t in tqdm(range(steps)):
             V += (ge * (nprop.E_ex - V) + input.step(dt)) / nprop.tau_m
@@ -192,13 +193,14 @@ class MemorySNN:
             W[spiked, :] = cp.clip(W[spiked, :] + Apost, 0, sprop.g_max)
             Apost[spiked] += sprop.dA_post
             W[:, spiked] = cp.clip(W[:, spiked] + Apre.reshape(-1, 1), 0, sprop.g_max)
+            spike_count[t] = spiked.sum().get()
 
         self.V = V.get()
         self.ge = ge.get()
         self.Apre = Apre.get()
         self.Apost = Apost.get()
         self.W = W.get()
-
+        plt.plot(spike_count).savefig('result/learn_spike_count.png')
 
     def simulate(self, input: InputGenerator, steps: int, dt: float) -> np.ndarray:
         """ simulating SNN without initialization """
