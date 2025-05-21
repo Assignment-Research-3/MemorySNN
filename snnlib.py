@@ -200,7 +200,7 @@ class MemorySNN:
         self.Apre = Apre.get()
         self.Apost = Apost.get()
         self.W = W.get()
-        plt.scatter(spike_count)
+        plt.scatter(np.arange(len(spike_count)), spike_count)
         plt.savefig('result/learn_spike_count.png')
 
     def simulate(self, input: InputGenerator, steps: int, dt: float) -> np.ndarray:
