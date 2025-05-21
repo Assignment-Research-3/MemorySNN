@@ -200,7 +200,7 @@ class MemorySNN:
         self.Apre = Apre.get()
         self.Apost = Apost.get()
         self.W = W.get()
-        plt.plot(spike_count).savefig('result/learn_spike_count.png')
+        plt.plot(spike_count)[0].savefig('result/learn_spike_count.png')
 
     def simulate(self, input: InputGenerator, steps: int, dt: float) -> np.ndarray:
         """ simulating SNN without initialization """
