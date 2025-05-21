@@ -6,6 +6,8 @@ try:
 finally:
   pass
 
+cp.cuda.Device(1).use()
+
 img_paths = glob("images/*.png")
 store_img_paths = [p for p in img_paths if "forest" not in p]  # forest 사진 제외 악기 사진 5개 사용
 store_img_paths.sort()
