@@ -48,7 +48,7 @@ nn = MemorySNN(  # NN 구축
 inputgen = SineWaveInputGenerator(mem_components, 1.5)
 
 print("Learning memory components...")
-nn.learn_memory(inputgen, steps=100, dt=0.01)
+nn.learn_memory(inputgen, steps=1000, dt=0.01)
 
 # noisy cue signal 준비
 relevant_noised_cue = mem_components[0] \
