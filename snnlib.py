@@ -218,7 +218,7 @@ class MemorySNN:
 
         for i in range(10):
             spike_count = self.simulate(igen, 100, 0.01)
-            decode_neural_state(spike_count, tags).save(f'result/retrieved_cue_{i}')
+            decode_neural_state(spike_count, tags).savefig(f'result/retrieved_cue_{i}')
 
 import zipfile
 import os
