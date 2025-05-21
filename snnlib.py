@@ -53,7 +53,7 @@ def encode_box_images(img_paths: str, tags: np.ndarray) -> np.ndarray:
     img_values = (img_values - 0.5) * (2 * IMAGE_PIXEL_THRESHOLD)
     img_values = np.reshape(img_values, (d ** 2,))
     for i in range(5):
-        mem_comp[i] = np.outer(tag, img_values).reshape(-1)  # tensor product binding
+        mem_comp[i] = np.outer(tags[i], img_values).reshape(-1)  # tensor product binding
     return mem_comp
 
 def decode_neural_state(spike_count: np.ndarray, tags: np.ndarray) -> plt.Figure:
