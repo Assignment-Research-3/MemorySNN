@@ -50,9 +50,9 @@ inputgen = SineWaveInputGenerator(mem_components, 1.5)
 print("Learning memory components...")
 nn.learn_memory(inputgen, steps=1000, dt=0.01)
 
-# noisy cue signal 준비
-relevant_noised_cue = mem_components[0] \
-    + 0.01 * np.random.randn(mem_components.shape[-1])  # 노이즈도 추가
+# box cue signal 준비
+mem_components = encode_box_images(store_img_paths, mem_tags[:-1])
+relevant_noised_cue = mem_components[0]
 
 print("Relevant noised cue signal:")
 decode_neural_state(relevant_noised_cue, mem_tags[:-1])
