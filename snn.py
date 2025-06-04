@@ -30,7 +30,7 @@ sprop_default = SynapseProp(tau_pre=0.02,
 
 run_count = 1
 
-def run_single(output_name, mean=0.85, std=0.25, nprop=nprop_default, sprop=sprop_default, email_key=None):
+def run_single(output_name, mean=0.85, std=0.25, nprop=nprop_default, sprop=sprop_default, omega=1.5, email_key=None):
   print('---------------------------------------------------------------------------')
   print(f'Run {run_count} : {output_name}')
   print('---------------------------------------------------------------------------')
@@ -51,7 +51,7 @@ def run_single(output_name, mean=0.85, std=0.25, nprop=nprop_default, sprop=spro
       synapse_prop=sprop
   )
   
-  inputgen = SineWaveInputGenerator(mem_components, 1.5)
+  inputgen = SineWaveInputGenerator(mem_components, omega)
   
   print("Learning memory components...")
   nn.learn_memory(inputgen, steps=1000, dt=0.01)
@@ -68,7 +68,7 @@ def run_single(output_name, mean=0.85, std=0.25, nprop=nprop_default, sprop=spro
   
   nn.clear()
   print("Retrieving images from the cue signal...")
-  nn.retrieve_from_cue(np.stack([relevant_noised_cue] * 5), mem_tags[:-1])
+  nn.retrieve_from_cue(np.stack([relevant_noised_cue] * 5), mem_tags[:-1], omega)
 
   if email_key is not None:
     send_email_with_zip(
