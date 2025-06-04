@@ -30,7 +30,7 @@ sprop_default = SynapseProp(tau_pre=0.02,
 
 run_count = 1
 
-def run_single(output_name, mean=0.85, std=0.25, nprop=nprop_default, sprop=sprop_default):
+def run_single(output_name, mean=0.85, std=0.25, nprop=nprop_default, sprop=sprop_default, email_key=None):
   print('---------------------------------------------------------------------------')
   print(f'Run {run_count} : {output_name}')
   print('---------------------------------------------------------------------------')
@@ -69,14 +69,15 @@ def run_single(output_name, mean=0.85, std=0.25, nprop=nprop_default, sprop=spro
   nn.clear()
   print("Retrieving images from the cue signal...")
   nn.retrieve_from_cue(np.stack([relevant_noised_cue] * 5), mem_tags[:-1])
-  
-  send_email_with_zip(
-      zip_path=zip_directory('result'),
-      subject="작업 파일 압축본",
-      body="첨부된 ZIP 파일을 확인하세요.",
-      sender="resultsender2025@gmail.com",
-      receiver="24065@sshs.hs.kr, 24072@sshs.hs.kr, 24046@sshs.hs.kr",
-      smtp_server="smtp.gmail.com",
-      smtp_port=465,
-      password=' '.join(sys.argv[1:])  # Gmail 앱 비밀번호 사용
-  )
+
+  if email_key is not None:
+    send_email_with_zip(
+        zip_path=zip_directory('result'),
+        subject="작업 파일 압축본",
+        body="첨부된 ZIP 파일을 확인하세요.",
+        sender="resultsender2025@gmail.com",
+        receiver="24065@sshs.hs.kr, 24072@sshs.hs.kr, 24046@sshs.hs.kr",
+        smtp_server="smtp.gmail.com",
+        smtp_port=465,
+        password=email_key  # Gmail 앱 비밀번호 사용
+    )
