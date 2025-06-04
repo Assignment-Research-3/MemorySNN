@@ -22,7 +22,7 @@ np.save("mem_tags.npy", mem_tags)
 print(f"Random generated memory tags:\n{mem_tags}")
 print(f"Memory tags shape: {mem_tags.shape}")
 
-mem_components = encode_images(store_img_paths, mem_tags[:-1])
+mem_components = encode_images(store_img_paths, mem_tags[:-1], [0.85, 0.9, 0.85, 0.85, 0.85], [0.25,0.25,0.25,0.25,0.25])
 
 print(f"Encoded memory components shape: {mem_components.shape}")
 
@@ -51,7 +51,7 @@ print("Learning memory components...")
 nn.learn_memory(inputgen, steps=1000, dt=0.01)
 
 # box cue signal 준비
-mem_components = encode_box_images(store_img_paths, mem_tags[:-1])
+mem_components = encode_box_images(store_img_paths, mem_tags[:-1], 0.85, 0.25)
 relevant_noised_cue = mem_components[0]
 
 print("Relevant noised cue signal:")
