@@ -21,7 +21,7 @@ def gram_schmidt_process(V: np.ndarray) -> np.ndarray:
         U[i] = U[i] / np.linalg.norm(U[i])
     return U
 
-def encode_images(img_paths: str, tags: np.ndarray, means: np.ndarray, stds: np.ndarray) -> np.ndarray:
+def encode_images(img_paths: str, tags: np.ndarray, means, stds) -> np.ndarray:
     """ encode images to neural states (memory components) """
 
     d = IMAGE_SIZE
@@ -38,7 +38,7 @@ def encode_images(img_paths: str, tags: np.ndarray, means: np.ndarray, stds: np.
         mem_comp[i] = np.outer(tag, img_values).reshape(-1)  # tensor product binding
     return mem_comp
 
-def encode_box_images(img_paths: str, tags: np.ndarray) -> np.ndarray:
+def encode_box_images(img_paths: str, tags: np.ndarray, mean_, std_) -> np.ndarray:
     """ encode images to neural states (memory components) """
 
     d = IMAGE_SIZE
@@ -48,7 +48,7 @@ def encode_box_images(img_paths: str, tags: np.ndarray) -> np.ndarray:
     img = Image.open(img_paths[0]).convert("L")
     img = img.resize((d, d))
     img_values = np.array(img) / 255
-    img_values = np.clip(0.85 + (img_values - img_values.mean()) / img_values.std() * 0.25, 0, 1)
+    img_values = np.clip(mean + (img_values - img_values.mean()) / img_values.std() * std_, 0, 1)
     img_values[10:22, 10:22] = img_values[10:22, 10:22].mean()
     img_values = (img_values - 0.5) * (2 * IMAGE_PIXEL_THRESHOLD)
     img_values = np.reshape(img_values, (d ** 2,))
@@ -56,7 +56,7 @@ def encode_box_images(img_paths: str, tags: np.ndarray) -> np.ndarray:
         mem_comp[i] = np.outer(tags[i], img_values).reshape(-1)  # tensor product binding
     return mem_comp
 
-def decode_neural_state(spike_count: np.ndarray, tags: np.ndarray) -> plt.Figure:
+def decode_neural_state(spike_count: np.ndarray, tags: np.ndarray, means, stds) -> plt.Figure:
     print(spike_count.max(), spike_count.min())
     spike_count = (spike_count - spike_count.mean()) / spike_count.std()
     d = IMAGE_SIZE
