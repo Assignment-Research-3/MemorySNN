@@ -48,7 +48,7 @@ def encode_box_images(img_paths: str, tags: np.ndarray, mean_, std_) -> np.ndarr
     img = Image.open(img_paths[0]).convert("L")
     img = img.resize((d, d))
     img_values = np.array(img) / 255
-    img_values = np.clip(mean)_ + (img_values - img_values.mean()) / img_values.std() * std_, 0, 1)
+    img_values = np.clip(mean_ + (img_values - img_values.mean()) / img_values.std() * std_, 0, 1)
     img_values[10:22, 10:22] = img_values[10:22, 10:22].mean()
     img_values = (img_values - 0.5) * (2 * IMAGE_PIXEL_THRESHOLD)
     img_values = np.reshape(img_values, (d ** 2,))
