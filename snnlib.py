@@ -56,7 +56,7 @@ def encode_box_images(img_paths: str, tags: np.ndarray, mean_, std_) -> np.ndarr
         mem_comp[i] = np.outer(tags[i], img_values).reshape(-1)  # tensor product binding
     return mem_comp
 
-def decode_neural_state(spike_count: np.ndarray, tags: np.ndarray, means, stds) -> plt.Figure:
+def decode_neural_state(spike_count: np.ndarray, tags: np.ndarray) -> plt.Figure:
     print(spike_count.max(), spike_count.min())
     spike_count = (spike_count - spike_count.mean()) / spike_count.std()
     d = IMAGE_SIZE
