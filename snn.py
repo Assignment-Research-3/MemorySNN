@@ -41,7 +41,7 @@ def run_single(output_name, mean=0.85, std=0.25, nprop=nprop_default, sprop=spro
   print(f"Random generated memory tags:\n{mem_tags}")
   print(f"Memory tags shape: {mem_tags.shape}")
   
-  mem_components = encode_images(store_img_paths, mem_tags[:-1], [0.85, 0.9, 0.85, 0.85, 0.85], [0.25,0.25,0.25,0.25,0.25])
+  mem_components = encode_images(store_img_paths, mem_tags[:-1], [mean] * (n-1), [std] * (n-1))
   
   print(f"Encoded memory components shape: {mem_components.shape}")
   
