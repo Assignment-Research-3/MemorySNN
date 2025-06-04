@@ -54,7 +54,7 @@ def run_single(output_name, mean=0.85, std=0.25, nprop=nprop_default, sprop=spro
   inputgen = SineWaveInputGenerator(mem_components, omega)
   
   print("Learning memory components...")
-  nn.learn_memory(inputgen, steps=1000, dt=0.01)
+  nn.learn_memory(inputgen, steps=200, dt=0.01)
   
   # box cue signal 준비
   mem_components = encode_box_images(store_img_paths, mem_tags[:-1], 0.85, 0.25)
