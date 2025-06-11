@@ -119,11 +119,11 @@ def decode_neural_state_no_tag(spike_count: np.ndarray) -> plt.Figure:
     d = IMAGE_SIZE
     n = 6
     fig, axes = plt.subplots(1, n, figsize=(1 * n, 1))
+    decodes = np.reshape(spike_count, (-1, d ** 2))
     for i, ax in enumerate(axes):
         ax: plt.Axes
-        decoded = np.reshape(spike_count, (-1, d ** 2))
-        print(decoded[i].shape)
-        decoded = np.reshape(decoded[i], (d, d))
+        print(decodes.shape)
+        decoded = np.reshape(decodes[i], (d, d))
         li.append(decoded)
         ax.imshow(decoded, cmap="gray")
         ax.set_xticks([])
