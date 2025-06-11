@@ -278,6 +278,15 @@ class MemorySNN:
             spike_count = self.simulate(igen, 100, 0.01)
             decode_neural_state(spike_count, tags).savefig(f'result/retrieved_cue_{i}')
             plt.close()
+            spike_count = (spike_count - spike_count.mean()) / spike_count.std()
+            d = IMAGE_SIZE
+            n = len(tags)
+            decoded = tag @ np.reshape(spike_count, (-1, d ** 2))
+            decoded = np.reshape(decoded, (d, d))
+            li = np.ndarray([[normalized_root_mse(target, image) for target in targets] for img in decoded])
+            lis.append(li)
+        with open('result/similar.txt', 'w') as f:
+            [f.write(str(li) + '\n') for li in lis]
 
 import zipfile
 import os
