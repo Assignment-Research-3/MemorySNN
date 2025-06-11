@@ -304,7 +304,7 @@ class MemorySNN:
                 fig, decoded = decode_neural_state(spike_count, tags)
                 fig.savefig(f'result/retrieved_cue_{i}')
             plt.close()
-            li = np.ndarray([[normalized_root_mse(target, img) for target in targets] for img in decoded])
+            li = np.array([[normalized_root_mse(target, img) for target in targets] for img in decoded])
             lis.append(li)
         with open('result/similar.txt', 'w') as f:
             [f.write(str(li) + '\n') for li in lis]
