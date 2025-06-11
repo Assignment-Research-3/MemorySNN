@@ -109,6 +109,22 @@ def decode_neural_state(spike_count: np.ndarray, tags: np.ndarray) -> plt.Figure
     fig.tight_layout()
     return fig
 
+def decode_neural_state_no_tag(spike_count: np.ndarray) -> plt.Figure:
+    print(spike_count.max(), spike_count.min())
+    spike_count = (spike_count - spike_count.mean()) / spike_count.std()
+    d = IMAGE_SIZE
+    n = 6
+    fig, axes = plt.subplots(1, n, figsize=(1 * n, 1))
+    for ax in axes:
+        ax: plt.Axes
+        decoded = np.reshape(spike_count, (-1, d ** 2))
+        decoded = np.reshape(decoded, (d, d))
+        ax.imshow(decoded, cmap="gray")
+        ax.set_xticks([])
+        ax.set_yticks([])
+    fig.tight_layout()
+    return fig
+
 from dataclasses import dataclass
 
 @dataclass
