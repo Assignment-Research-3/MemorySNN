@@ -72,7 +72,7 @@ def run_single(output_name, mean=0.85, std=0.25, nprop=nprop_default, sprop=spro
 
   if email_key is not None:
     send_email_with_zip(
-        zip_path=zip_directory('result'),
+        zip_path=zip_directory('result', zip_name=output_name),
         subject="작업 파일 압축본",
         body="첨부된 ZIP 파일을 확인하세요.",
         sender="resultsender2025@gmail.com",
