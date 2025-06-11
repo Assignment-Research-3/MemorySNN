@@ -1,4 +1,4 @@
-ffrom glob import glob
+from glob import glob
 from PIL import Image
 
 import matplotlib.pyplot as plt
