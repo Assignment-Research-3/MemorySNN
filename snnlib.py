@@ -39,23 +39,6 @@ def encode_images(img_paths: str, tags: np.ndarray, means, stds) -> np.ndarray:
         mem_comp[i] = np.outer(tag, img_values).reshape(-1)  # tensor product binding
     return mem_comp
 
-def encode_images_no_tag(img_paths: str, means, stds) -> np.ndarray:
-    """ encode images to neural states (memory components) """
-
-    d = IMAGE_SIZE
-    num_comp = len(img_paths)
-    dim = (d ** 2)
-    mem_comp = np.zeros((num_comp, dim))
-    for i, img_path in enumerate(img_paths):
-        img = Image.open(img_path).convert("L")
-        img = img.resize((d, d))
-        img_values = np.array(img) / 255
-        img_values = np.clip(means[i] + (img_values - img_values.mean()) / img_values.std() * stds[i], 0, 1)
-        img_values = (img_values - 0.5) * (2 * IMAGE_PIXEL_THRESHOLD)
-        img_values = np.reshape(img_values, (d ** 2,))
-        mem_comp[i] = img_values.reshape(-1)  # tensor product binding
-    return mem_comp
-
 def encode_box_images(img_paths: str, tags: np.ndarray, mean_, std_) -> np.ndarray:
     """ encode images to neural states (memory components) """
 
@@ -105,24 +88,6 @@ def decode_neural_state(spike_count: np.ndarray, tags: np.ndarray) -> plt.Figure
         ax: plt.Axes
         decoded = tag @ np.reshape(spike_count, (-1, d ** 2))
         decoded = np.reshape(decoded, (d, d))
-        li.append(decoded)
-        ax.imshow(decoded, cmap="gray")
-        ax.set_xticks([])
-        ax.set_yticks([])
-    fig.tight_layout()
-    return fig, li
-
-def decode_neural_state_no_tag(spike_count: np.ndarray) -> plt.Figure:
-    li = []
-    spike_count = (spike_count - spike_count.mean()) / spike_count.std()
-    d = IMAGE_SIZE
-    n = 6
-    fig, axes = plt.subplots(1, n, figsize=(1 * n, 1))
-    decodes = np.reshape(spike_count, (-1, d ** 2))
-    for i, ax in enumerate(axes):
-        ax: plt.Axes
-        print(i, decodes.shape)
-        decoded = np.reshape(decodes[i], (d, d))
         li.append(decoded)
         ax.imshow(decoded, cmap="gray")
         ax.set_xticks([])
@@ -290,7 +255,7 @@ class MemorySNN:
 
         return spike_count.get()
     
-    def retrieve_from_cue(self, cue: np.ndarray, tags: np.ndarray, omega, targets, with_tag = True) -> None:
+    def retrieve_from_cue(self, cue: np.ndarray, tags: np.ndarray, omega, targets) -> None:
         """ retrieval from cue signal """
         self.clear()
         igen = SineWaveInputGenerator(cue, omega)
@@ -298,12 +263,8 @@ class MemorySNN:
         
         for i in range(10):
             spike_count = self.simulate(igen, 100, 0.01)
-            if with_tag:
-                fig, decoded = decode_neural_state(spike_count, tags)
-                fig.savefig(f'result/retrieved_cue_{i}')
-            else:
-                fig, decoded = decode_neural_state_no_tag(spike_count)
-                fig.savefig(f'result/retrieved_cue_{i}')
+            fig, decoded = decode_neural_state(spike_count, tags)
+            fig.savefig(f'result/retrieved_cue_{i}')
             plt.close()
             li = np.array([[normalized_root_mse(target, img) for target in targets] for img in decoded])
             lis.append(li)
