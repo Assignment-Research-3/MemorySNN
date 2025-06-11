@@ -1,4 +1,4 @@
-from glob import glob
+ffrom glob import glob
 from PIL import Image
 
 import matplotlib.pyplot as plt
@@ -294,7 +294,8 @@ class MemorySNN:
         """ retrieval from cue signal """
         self.clear()
         igen = SineWaveInputGenerator(cue, omega)
-
+        lis = []
+        
         for i in range(10):
             spike_count = self.simulate(igen, 100, 0.01)
             if with_tag:
