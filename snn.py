@@ -30,7 +30,7 @@ sprop_default = SynapseProp(tau_pre=0.02,
 
 run_count = 1
 
-def run_single(output_name, mean=0.85, std=0.25, nprop=nprop_default, sprop=sprop_default, omega=1.5, email_key=None):
+def run_single(output_name, mean=0.85, std=0.25, nprop=nprop_default, sprop=sprop_default, omega=1.5, email_key=None, with_tag = True):
   print('---------------------------------------------------------------------------')
   print(f'Run {run_count} : {output_name}')
   print('---------------------------------------------------------------------------')
@@ -40,8 +40,11 @@ def run_single(output_name, mean=0.85, std=0.25, nprop=nprop_default, sprop=spro
   np.save("mem_tags.npy", mem_tags)
   print(f"Random generated memory tags:\n{mem_tags}")
   print(f"Memory tags shape: {mem_tags.shape}")
-  
-  mem_components = encode_images(store_img_paths, mem_tags[:-1], [mean] * (n-1), [std] * (n-1))
+
+  if with_tag:
+    mem_components = encode_images(store_img_paths, mem_tags[:-1], [mean] * (n-1), [std] * (n-1))
+  else:
+    mem_components = encode_images_no_tag(store_img_paths, mem_tags[:-1], [mean] * (n-1), [std] * (n-1))
   
   print(f"Encoded memory components shape: {mem_components.shape}")
   
@@ -57,7 +60,10 @@ def run_single(output_name, mean=0.85, std=0.25, nprop=nprop_default, sprop=spro
   nn.learn_memory(inputgen, steps=200, dt=0.01)
   
   # box cue signal 준비
-  mem_components = encode_box_images(store_img_paths, mem_tags[:-1], 0.85, 0.25)
+  if with_tag:
+    mem_components = encode_box_images(store_img_paths, mem_tags[:-1], 0.85, 0.25)
+  else:
+    mem_components = encode_box_images_no_tag(store_img_paths, mem_tags[:-1], 0.85, 0.25)
   relevant_noised_cue = mem_components[0]
   
   print("Relevant noised cue signal:")
