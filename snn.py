@@ -67,7 +67,11 @@ def run_single(output_name, mean=0.85, std=0.25, nprop=nprop_default, sprop=spro
   relevant_noised_cue = mem_components[0]
   
   print("Relevant noised cue signal:")
-  decode_neural_state(relevant_noised_cue, mem_tags[:-1])
+  if with_tag:
+    decode_neural_state(relevant_noised_cue, mem_tags[:-1])
+  else:
+    decode_neural_state_no_tag(relevant_noised_cue
+  
   plt.show()
   plt.savefig('result/noised_signal.png')
   plt.close()
