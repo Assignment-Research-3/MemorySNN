@@ -44,7 +44,7 @@ def run_single(output_name, mean=0.85, std=0.25, nprop=nprop_default, sprop=spro
   if with_tag:
     mem_components = encode_images(store_img_paths, mem_tags[:-1], [mean] * (n-1), [std] * (n-1))
   else:
-    mem_components = encode_images_no_tag(store_img_paths, mem_tags[:-1], [mean] * (n-1), [std] * (n-1))
+    mem_components = encode_images_no_tag(store_img_paths, [mean] * (n-1), [std] * (n-1))
   
   print(f"Encoded memory components shape: {mem_components.shape}")
   
@@ -63,7 +63,7 @@ def run_single(output_name, mean=0.85, std=0.25, nprop=nprop_default, sprop=spro
   if with_tag:
     mem_components = encode_box_images(store_img_paths, mem_tags[:-1], 0.85, 0.25)
   else:
-    mem_components = encode_box_images_no_tag(store_img_paths, mem_tags[:-1], 0.85, 0.25)
+    mem_components = encode_box_images_no_tag(store_img_paths, 0.85, 0.25)
   relevant_noised_cue = mem_components[0]
   
   print("Relevant noised cue signal:")
