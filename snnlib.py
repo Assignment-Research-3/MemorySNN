@@ -92,6 +92,7 @@ def encode_box_images_no_tag(img_paths: str, mean_, std_) -> np.ndarray:
     return mem_comp
 
 def decode_neural_state(spike_count: np.ndarray, tags: np.ndarray) -> plt.Figure:
+    li = []
     print(spike_count.max(), spike_count.min())
     spike_count = (spike_count - spike_count.mean()) / spike_count.std()
     d = IMAGE_SIZE
@@ -103,13 +104,15 @@ def decode_neural_state(spike_count: np.ndarray, tags: np.ndarray) -> plt.Figure
         ax: plt.Axes
         decoded = tag @ np.reshape(spike_count, (-1, d ** 2))
         decoded = np.reshape(decoded, (d, d))
+        li.append(decoded)
         ax.imshow(decoded, cmap="gray")
         ax.set_xticks([])
         ax.set_yticks([])
     fig.tight_layout()
-    return fig
+    return fig, li
 
 def decode_neural_state_no_tag(spike_count: np.ndarray) -> plt.Figure:
+    li = []
     print(spike_count.max(), spike_count.min())
     spike_count = (spike_count - spike_count.mean()) / spike_count.std()
     d = IMAGE_SIZE
@@ -119,11 +122,12 @@ def decode_neural_state_no_tag(spike_count: np.ndarray) -> plt.Figure:
         ax: plt.Axes
         decoded = np.reshape(spike_count, (-1, d ** 2))
         decoded = np.reshape(decoded, (d, d))
+        li.append(decoded)
         ax.imshow(decoded, cmap="gray")
         ax.set_xticks([])
         ax.set_yticks([])
     fig.tight_layout()
-    return fig
+    return fig, li
 
 from dataclasses import dataclass
 
@@ -293,15 +297,12 @@ class MemorySNN:
         for i in range(10):
             spike_count = self.simulate(igen, 100, 0.01)
             if with_tag:
-                decode_neural_state(spike_count, tags).savefig(f'result/retrieved_cue_{i}')
+                fig, decoded = decode_neural_state(spike_count, tags)
+                fig.savefig(f'result/retrieved_cue_{i}')
             else:
-                decode_neural_state_no_tag(spike_count, tags).savefig(f'result/retrieved_cue_{i}')
+                fig, decoded = decode_neural_state(spike_count, tags)
+                fig.savefig(f'result/retrieved_cue_{i}')
             plt.close()
-            spike_count = (spike_count - spike_count.mean()) / spike_count.std()
-            d = IMAGE_SIZE
-            n = len(tags)
-            decoded = tags @ np.reshape(spike_count, (-1, d ** 2))
-            decoded = np.reshape(decoded, (d, d))
             li = np.ndarray([[normalized_root_mse(target, image) for target in targets] for img in decoded])
             lis.append(li)
         with open('result/similar.txt', 'w') as f:
