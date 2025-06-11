@@ -61,9 +61,9 @@ def run_single(output_name, mean=0.85, std=0.25, nprop=nprop_default, sprop=spro
   
   # box cue signal 준비
   if with_tag:
-    mem_components = encode_box_images(store_img_paths, mem_tags[:-1], 0.85, 0.25)
+    mem_components = encode_box_images(store_img_paths, mem_tags[:-1], mean, std)
   else:
-    mem_components = encode_box_images_no_tag(store_img_paths, 0.85, 0.25)
+    mem_components = encode_box_images_no_tag(store_img_paths, mean, std)
   relevant_noised_cue = mem_components[0]
   
   print("Relevant noised cue signal:")
@@ -78,7 +78,7 @@ def run_single(output_name, mean=0.85, std=0.25, nprop=nprop_default, sprop=spro
   
   nn.clear()
   print("Retrieving images from the cue signal...")
-  nn.retrieve_from_cue(np.stack([relevant_noised_cue] * 5), mem_tags[:-1], omega, encode_images_no_tag(store_img_paths, 0.85, 0.25))
+  nn.retrieve_from_cue(np.stack([relevant_noised_cue] * 5), mem_tags[:-1], omega, encode_images_no_tag(store_img_paths, [mean] * (n-1), [std] * (n-1)))
 
   if email_key is not None:
     send_email_with_zip(
