@@ -302,7 +302,7 @@ class MemorySNN:
                 fig, decoded = decode_neural_state(spike_count, tags)
                 fig.savefig(f'result/retrieved_cue_{i}')
             else:
-                fig, decoded = decode_neural_state_no_tag(spike_count, tags)
+                fig, decoded = decode_neural_state_no_tag(spike_count)
                 fig.savefig(f'result/retrieved_cue_{i}')
             plt.close()
             li = np.array([[normalized_root_mse(target, img) for target in targets] for img in decoded])
