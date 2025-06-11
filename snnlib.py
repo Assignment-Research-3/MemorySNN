@@ -285,7 +285,7 @@ class MemorySNN:
 
         return spike_count.get()
     
-    def retrieve_from_cue(self, cue: np.ndarray, tags: np.ndarray, omega) -> None:
+    def retrieve_from_cue(self, cue: np.ndarray, tags: np.ndarray, omega, targets) -> None:
         """ retrieval from cue signal """
         self.clear()
         igen = SineWaveInputGenerator(cue, omega)
