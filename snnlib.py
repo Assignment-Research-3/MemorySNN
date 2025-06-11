@@ -114,7 +114,6 @@ def decode_neural_state(spike_count: np.ndarray, tags: np.ndarray) -> plt.Figure
 
 def decode_neural_state_no_tag(spike_count: np.ndarray) -> plt.Figure:
     li = []
-    print(spike_count.max(), spike_count.min())
     spike_count = (spike_count - spike_count.mean()) / spike_count.std()
     d = IMAGE_SIZE
     n = 6
@@ -122,7 +121,7 @@ def decode_neural_state_no_tag(spike_count: np.ndarray) -> plt.Figure:
     decodes = np.reshape(spike_count, (-1, d ** 2))
     for i, ax in enumerate(axes):
         ax: plt.Axes
-        print(decodes.shape)
+        print(i, decodes.shape)
         decoded = np.reshape(decodes[i], (d, d))
         li.append(decoded)
         ax.imshow(decoded, cmap="gray")
