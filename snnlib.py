@@ -39,14 +39,14 @@ def encode_images(img_paths: str, tags: np.ndarray, means, stds) -> np.ndarray:
         mem_comp[i] = np.outer(tag, img_values).reshape(-1)  # tensor product binding
     return mem_comp
 
-def encode_box_images(img_paths: str, tags: np.ndarray, mean_, std_) -> np.ndarray:
+def encode_box_images(img_paths: str, index=0, tags: np.ndarray, mean_, std_) -> np.ndarray:
     """ encode images to neural states (memory components) """
 
     d = IMAGE_SIZE
     num_comp = len(img_paths)
     dim = (d ** 2) * tags.shape[1]
     mem_comp = np.zeros((num_comp, dim))
-    img = Image.open(img_paths[0]).convert("L")
+    img = Image.open(img_paths[index]).convert("L")
     img = img.resize((d, d))
     img_values = np.array(img) / 255
     img_values = np.clip(mean_ + (img_values - img_values.mean()) / img_values.std() * std_, 0, 1)
@@ -55,24 +55,6 @@ def encode_box_images(img_paths: str, tags: np.ndarray, mean_, std_) -> np.ndarr
     img_values = np.reshape(img_values, (d ** 2,))
     for i in range(5):
         mem_comp[i] = np.outer(tags[i], img_values).reshape(-1)  # tensor product binding
-    return mem_comp
-
-def encode_box_images_no_tag(img_paths: str, mean_, std_) -> np.ndarray:
-    """ encode images to neural states (memory components) """
-
-    d = IMAGE_SIZE
-    num_comp = len(img_paths)
-    dim = (d ** 2)
-    mem_comp = np.zeros((num_comp, dim))
-    img = Image.open(img_paths[0]).convert("L")
-    img = img.resize((d, d))
-    img_values = np.array(img) / 255
-    img_values = np.clip(mean_ + (img_values - img_values.mean()) / img_values.std() * std_, 0, 1)
-    img_values[10:22, 10:22] = img_values[10:22, 10:22].mean()
-    img_values = (img_values - 0.5) * (2 * IMAGE_PIXEL_THRESHOLD)
-    img_values = np.reshape(img_values, (d ** 2,))
-    for i in range(5):
-        mem_comp[i] = img_values.reshape(-1)  # tensor product binding
     return mem_comp
 
 def decode_neural_state(spike_count: np.ndarray, tags: np.ndarray) -> plt.Figure:
