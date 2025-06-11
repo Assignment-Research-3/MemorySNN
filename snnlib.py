@@ -43,7 +43,7 @@ def encode_images_no_tag(img_paths: str, means, stds) -> np.ndarray:
 
     d = IMAGE_SIZE
     num_comp = len(img_paths)
-    dim = (d ** 2) * 6
+    dim = (d ** 2)
     mem_comp = np.zeros((num_comp, dim))
     for i, img_path in enumerate(img_paths):
         img = Image.open(img_path).convert("L")
@@ -78,7 +78,7 @@ def encode_box_images_no_tag(img_paths: str, mean_, std_) -> np.ndarray:
 
     d = IMAGE_SIZE
     num_comp = len(img_paths)
-    dim = (d ** 2) * 6
+    dim = (d ** 2)
     mem_comp = np.zeros((num_comp, dim))
     img = Image.open(img_paths[0]).convert("L")
     img = img.resize((d, d))
