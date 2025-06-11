@@ -39,7 +39,7 @@ def encode_images(img_paths: str, tags: np.ndarray, means, stds) -> np.ndarray:
         mem_comp[i] = np.outer(tag, img_values).reshape(-1)  # tensor product binding
     return mem_comp
 
-def encode_images(img_paths: str, means, stds) -> np.ndarray:
+def encode_images_no_tag(img_paths: str, means, stds) -> np.ndarray:
     """ encode images to neural states (memory components) """
 
     d = IMAGE_SIZE
@@ -55,6 +55,7 @@ def encode_images(img_paths: str, means, stds) -> np.ndarray:
         img_values = np.reshape(img_values, (d ** 2,))
         mem_comp[i] = img_values.reshape(-1)  # tensor product binding
     return mem_comp
+    
 def encode_box_images(img_paths: str, tags: np.ndarray, mean_, std_, index=0) -> np.ndarray:
     """ encode images to neural states (memory components) """
 
