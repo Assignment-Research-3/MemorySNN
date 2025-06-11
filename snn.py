@@ -30,7 +30,7 @@ sprop_default = SynapseProp(tau_pre=0.02,
 
 run_count = 1
 
-def run_single(output_name, mean=0.85, std=0.25, nprop=nprop_default, sprop=sprop_default, omega=1.5, email_key=None, with_tag = True):
+def run_single(output_name, mean=0.85, std=0.25, nprop=nprop_default, sprop=sprop_default, omega=1.5, email_key=None):
   print('---------------------------------------------------------------------------')
   print(f'Run {run_count} : {output_name}')
   print('---------------------------------------------------------------------------')
@@ -40,11 +40,7 @@ def run_single(output_name, mean=0.85, std=0.25, nprop=nprop_default, sprop=spro
   np.save("mem_tags.npy", mem_tags)
   print(f"Random generated memory tags:\n{mem_tags}")
   print(f"Memory tags shape: {mem_tags.shape}")
-
-  if with_tag:
-    mem_components = encode_images(store_img_paths, mem_tags[:-1], [mean] * (n-1), [std] * (n-1))
-  else:
-    mem_components = encode_images_no_tag(store_img_paths, [mean] * (n-1), [std] * (n-1))
+  mem_components = encode_images(store_img_paths, mem_tags[:-1], [mean] * (n-1), [std] * (n-1))
   
   print(f"Encoded memory components shape: {mem_components.shape}")
   
@@ -60,17 +56,13 @@ def run_single(output_name, mean=0.85, std=0.25, nprop=nprop_default, sprop=spro
   nn.learn_memory(inputgen, steps=200, dt=0.01)
   
   # box cue signal 준비
-  if with_tag:
-    mem_components = encode_box_images(store_img_paths, mem_tags[:-1], mean, std)
-  else:
-    mem_components = encode_box_images_no_tag(store_img_paths, mean, std)
+
+  mem_components = encode_box_images(store_img_paths, mem_tags[:-1], mean, std)
   relevant_noised_cue = mem_components[0]
   
   print("Relevant noised cue signal:")
-  if with_tag:
-    decode_neural_state(relevant_noised_cue, mem_tags[:-1])
-  else:
-    decode_neural_state_no_tag(relevant_noised_cue)
+  decode_neural_state(relevant_noised_cue, mem_tags[:-1])
+
   
   plt.show()
   plt.savefig('result/noised_signal.png')
@@ -79,7 +71,7 @@ def run_single(output_name, mean=0.85, std=0.25, nprop=nprop_default, sprop=spro
   nn.clear()
   print("Retrieving images from the cue signal...")
   imgs = encode_images_no_tag(store_img_paths, [mean] * (n-1), [std] * (n-1))
-  nn.retrieve_from_cue(np.stack([relevant_noised_cue] * 5), mem_tags[:-1], omega, [imgs[i].reshape(32, 32) for i in range(5)], with_tag)
+  nn.retrieve_from_cue(np.stack([relevant_noised_cue] * 5), mem_tags[:-1], omega, [imgs[i].reshape(32, 32) for i in range(5)])
 
   if email_key is not None:
     send_email_with_zip(
