@@ -79,7 +79,7 @@ def run_single(output_name, mean=0.85, std=0.25, nprop=nprop_default, sprop=spro
   nn.clear()
   print("Retrieving images from the cue signal...")
   imgs = encode_images_no_tag(store_img_paths, [mean] * (n-1), [std] * (n-1))
-  nn.retrieve_from_cue(np.stack([relevant_noised_cue] * 5), mem_tags[:-1], omega, [imgs[i] for i in range(5)], with_tag)
+  nn.retrieve_from_cue(np.stack([relevant_noised_cue] * 5), mem_tags[:-1], omega, [imgs[i].reshape(32, 32) for i in range(5)], with_tag)
 
   if email_key is not None:
     send_email_with_zip(
