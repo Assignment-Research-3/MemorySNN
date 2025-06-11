@@ -308,7 +308,7 @@ class MemorySNN:
             li = np.array([[normalized_root_mse(target, img) for target in targets] for img in decoded])
             lis.append(li)
         with open('result/similar.txt', 'w') as f:
-            [f.write(str(li) + '\n') for li in lis]
+            [f.write(str(li) + '\n\n\n') for li in lis]
 
 import zipfile
 import os
