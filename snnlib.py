@@ -44,7 +44,7 @@ def encode_images_no_tag(img_paths: str, means, stds) -> np.ndarray:
 
     d = IMAGE_SIZE
     num_comp = len(img_paths)
-    dim = (d ** 2) * tags.shape[1]
+    dim = (d ** 2)
     mem_comp = np.zeros((num_comp, dim))
     for i, (img_path, tag) in enumerate(zip(img_paths, tags)):
         img = Image.open(img_path).convert("L")
