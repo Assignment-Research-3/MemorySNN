@@ -38,7 +38,7 @@ sprop_default = SynapseProp(tau_pre=0.02,
 run_count = 1
 
 # 한 번의 학습 및 테스트 사이클 함수
-def run_single(output_name, ind = 0, mean = [0.9]*5, std=0.25, nprop=nprop_default, sprop=sprop_default, omega=1.5, email_key=None):
+def run_single(output_name, ind = 0, mean = [0.9]*5, std=[0.25]*5, nprop=nprop_default, sprop=sprop_default, omega=1.5, email_key=None):
   print('---------------------------------------------------------------------------')
   print(f'Run {run_count} : {output_name}')
   print('---------------------------------------------------------------------------')
@@ -50,7 +50,7 @@ def run_single(output_name, ind = 0, mean = [0.9]*5, std=0.25, nprop=nprop_defau
   np.save("mem_tags.npy", mem_tags)
   print(f"Random generated memory tags:\n{mem_tags}")
   print(f"Memory tags shape: {mem_tags.shape}")
-  mem_components = encode_images(store_img_paths, mem_tags[:-1], mean, [std] * (n-1))
+  mem_components = encode_images(store_img_paths, mem_tags[:-1], mean, std)
   
   print(f"Encoded memory components shape: {mem_components.shape}")
   
@@ -68,7 +68,7 @@ def run_single(output_name, ind = 0, mean = [0.9]*5, std=0.25, nprop=nprop_defau
   nn.learn_memory(inputgen, steps=200, dt=0.01)
   
   # box cue signal 준비
-  mem_components = encode_box_images(store_img_paths, mem_tags[:-1], mean[0], std, index=ind)
+  mem_components = encode_box_images(store_img_paths, mem_tags[:-1], mean[0], std[0], index=ind)
   relevant_noised_cue = np.array([mem_components[0]]*5)
   
   print("Relevant noised cue signal:")
@@ -82,7 +82,7 @@ def run_single(output_name, ind = 0, mean = [0.9]*5, std=0.25, nprop=nprop_defau
   # 테스트
   nn.clear()
   print("Retrieving images from the cue signal...")
-  imgs = encode_images_no_tag(store_img_paths, mean, [std] * (n-1))
+  imgs = encode_images_no_tag(store_img_paths, mean, std)
   nn.retrieve_from_cue(relevant_noised_cue , mem_tags[:-1], omega, [imgs[i].reshape(32, 32) for i in range(5)])
 
   # gmail로 이메일 보내기
