@@ -10,6 +10,7 @@ from skimage.metrics import peak_signal_noise_ratio as psnr
 IMAGE_SIZE = 32  # size of images (width & height)
 IMAGE_PIXEL_THRESHOLD = .05  # threshold for pixel values
 
+# 직교 벡터를 만드는 함수
 def gram_schmidt_process(V: np.ndarray) -> np.ndarray:
     n, N = V.shape
     U = np.zeros((n, N), dtype=np.float64)
@@ -22,6 +23,7 @@ def gram_schmidt_process(V: np.ndarray) -> np.ndarray:
         U[i] = U[i] / np.linalg.norm(U[i])
     return U
 
+# 이미지 정규화 및 직교 벡터 인코딩
 def encode_images(img_paths: str, tags: np.ndarray, means, stds) -> np.ndarray:
     """ encode images to neural states (memory components) """
 
@@ -33,12 +35,16 @@ def encode_images(img_paths: str, tags: np.ndarray, means, stds) -> np.ndarray:
         img = Image.open(img_path).convert("L")
         img = img.resize((d, d))
         img_values = np.array(img) / 255
+        # 정규화 후 범위 설정
         img_values = np.clip(means[i] + (img_values - img_values.mean()) / img_values.std() * stds[i], 0, 1)
+        # 이미지 픽셀의 양 끝 범위를 중앙이 0이도록 이동
         img_values = (img_values - 0.5) * (2 * IMAGE_PIXEL_THRESHOLD)
         img_values = np.reshape(img_values, (d ** 2,))
+        # 이미지를 직교 벡터 인코딩
         mem_comp[i] = np.outer(tag, img_values).reshape(-1)  # tensor product binding
     return mem_comp
 
+# 직교 벡터 없이 인코딩(위의 encode_images)에서 직교 벡터 인코딩만 제외함
 def encode_images_no_tag(img_paths: str, means, stds) -> np.ndarray:
     """ encode images to neural states (memory components) """
 
@@ -53,9 +59,10 @@ def encode_images_no_tag(img_paths: str, means, stds) -> np.ndarray:
         img_values = np.clip(means[i] + (img_values - img_values.mean()) / img_values.std() * stds[i], 0, 1)
         img_values = (img_values - 0.5) * (2 * IMAGE_PIXEL_THRESHOLD)
         img_values = np.reshape(img_values, (d ** 2,))
-        mem_comp[i] = img_values.reshape(-1)  # tensor product binding
+        mem_comp[i] = img_values.reshape(-1)
     return mem_comp
-    
+
+# 박스로 중앙을 덮은 이미지 인코딩딩
 def encode_box_images(img_paths: str, tags: np.ndarray, mean_, std_, index=0) -> np.ndarray:
     """ encode images to neural states (memory components) """
 
@@ -71,9 +78,10 @@ def encode_box_images(img_paths: str, tags: np.ndarray, mean_, std_, index=0) ->
     img_values = (img_values - 0.5) * (2 * IMAGE_PIXEL_THRESHOLD)
     img_values = np.reshape(img_values, (d ** 2,))
     for i in range(5):
-        mem_comp[i] = np.outer(tags[i], img_values).reshape(-1)  # tensor product binding
+        mem_comp[i] = np.outer(tags[i], img_values).reshape(-1)
     return mem_comp
 
+# 뉴런의 스파이크 개수를 기반으로 결과물로 디코딩
 def decode_neural_state(spike_count: np.ndarray, tags: np.ndarray) -> plt.Figure:
     li = []
     print(spike_count.max(), spike_count.min())
@@ -94,6 +102,7 @@ def decode_neural_state(spike_count: np.ndarray, tags: np.ndarray) -> plt.Figure
     fig.tight_layout()
     return fig, li
 
+# 위의 encode_images의 역과정
 def decode_image(mem_comp: np.ndarray, tags: np.ndarray) -> plt.Figure:
     li = []
     d = IMAGE_SIZE
@@ -114,6 +123,7 @@ def decode_image(mem_comp: np.ndarray, tags: np.ndarray) -> plt.Figure:
 
 from dataclasses import dataclass
 
+# 뉴런의 하이퍼파라미터 설정 클래스
 @dataclass
 class NeuronProp:
     V_rest: float
@@ -122,6 +132,7 @@ class NeuronProp:
     E_ex: float
     tau_e: float
 
+    # cupy 라이브러리를 위한 데이터 이전 함수
     def to_cupy(self, dt):
         return CUDANeuronProp(
             V_rest=cp.asarray(self.V_rest),
@@ -131,6 +142,7 @@ class NeuronProp:
             tau_e=cp.asarray(self.tau_e / dt),
         )
 
+# 시냅스의 하이퍼파라미터 설정 클래스
 @dataclass
 class SynapseProp:
     tau_pre: float
@@ -140,6 +152,7 @@ class SynapseProp:
     g_max: float
     w_ratio: float
 
+    # cupy 라이브러리를 위한 데이터 이전 함수
     def to_cupy(self, dt):
         return CUDASynapseProp(
             tau_pre=cp.asarray(self.tau_pre / dt),
@@ -150,6 +163,7 @@ class SynapseProp:
             w_ratio=cp.asarray(self.w_ratio)
         )
 
+# cupy로 옮긴 뉴런 하이퍼파라미터 래퍼
 @dataclass
 class CUDANeuronProp:
     V_rest: cp.ndarray
@@ -158,6 +172,7 @@ class CUDANeuronProp:
     E_ex: cp.ndarray
     tau_e: cp.ndarray
 
+# cupy로 옮긴 시냅스 하이퍼파라미터 래퍼
 @dataclass
 class CUDASynapseProp:
     tau_pre: cp.ndarray
@@ -167,13 +182,15 @@ class CUDASynapseProp:
     g_max: cp.ndarray
     w_ratio: cp.ndarray
 
+# SNN용 시간에 따른 전처리 기본 구조 클래스
 class InputGenerator:
     def __init__(self, N):
         self.N = N
 
     def step(self, dt: float) -> np.ndarray:
         return np.zeros((self.N, ))
-    
+
+# 위상이 다른 사인파의 중첩으로 이미지를 인코딩 하는 전처리 구조 클래스스
 class SineWaveInputGenerator(InputGenerator):
     def __init__(self, arr: np.ndarray, omega: float):
         self.xi = cp.asarray(np.linspace(0, np.pi, arr.shape[0] + 1)[:-1])
@@ -185,7 +202,9 @@ class SineWaveInputGenerator(InputGenerator):
         self.t += dt
         return cp.sin(cp.asarray(self.t) * self.omega - self.xi) @ self.arr
 
+# 전체 SNN 구조 클래스
 class MemorySNN:
+    # 하이퍼파라미터 및 내부 변수 최적화
     def __init__(self, N: int, neuron_prop: NeuronProp, synapse_prop: SynapseProp):
         self.N = N
         self.nprop = neuron_prop
@@ -196,6 +215,7 @@ class MemorySNN:
         self.Apre = np.zeros((N, ))
         self.Apost = np.zeros((N, ))
 
+    # 시뮬레이션에서 사용되는 상태 변수 초기화화
     def clear(self):
         self.V = np.full((self.N, ), self.nprop.V_rest)
         self.ge = np.zeros((self.N, ))
@@ -208,8 +228,10 @@ class MemorySNN:
     def load_W(self, path: str) -> None:
         self.W = np.load(path)
 
+    # 학습 과정
     def learn_memory(self, input: InputGenerator, steps: int, dt: float) -> np.ndarray:
         """ learning memory components """
+        # 하이퍼파라미터, 내부 상태변수를 gpu로 이전
         V = cp.asarray(self.V)
         ge = cp.asarray(self.ge)
         Apre = cp.asarray(self.Apre)
@@ -219,12 +241,16 @@ class MemorySNN:
         W = cp.asarray(self.W)
         spike_count = np.zeros((steps,), dtype=int)
 
+        # steps 횟수만큼 실행
         for t in tqdm(range(steps)):
+            # 뉴런 시뮬레이션
             V += (ge * (nprop.E_ex - V) + input.step(dt)) / nprop.tau_m
             ge += -ge / nprop.tau_e 
+            spiked = V > nprop.V_th
+            # 시냅스 시뮬레이션
             Apre += -Apre / sprop.tau_pre
             Apost += -Apost / sprop.tau_post
-            spiked = V > nprop.V_th
+            # 스파이크가 있는 뉴런들에 대해 시냅스 시뮬레이션
             V[spiked] = nprop.V_rest
             ge += W[spiked, :].sum(axis=0) * sprop.w_ratio
             Apre[spiked] += sprop.dA_pre
@@ -233,17 +259,22 @@ class MemorySNN:
             W[:, spiked] = cp.clip(W[:, spiked] + Apre.reshape(-1, 1), 0, sprop.g_max)
             spike_count[t] = spiked.sum().get()
 
+        # gpu에서 다시 메모리 가져와서 저장
         self.V = V.get()
         self.ge = ge.get()
         self.Apre = Apre.get()
         self.Apost = Apost.get()
         self.W = W.get()
+
+        # 매 step 마다 스파이크 개수 기록된 것 그래프로 그리고 저장
         plt.scatter(np.arange(len(spike_count)), spike_count)
         plt.savefig('result/learn_spike_count.png')
         plt.close()
 
+    # 시뮬레이션 진행 (가중치 업데이트 제외)
     def simulate(self, input: InputGenerator, steps: int, dt: float) -> np.ndarray:
         """ simulating SNN without initialization """
+        # 하이퍼파라미터, 내부 상태변수를 gpu로 이전
         spike_count = cp.asarray(np.zeros((self.N, )))
         V = cp.asarray(self.V)
         ge = cp.asarray(self.ge)
@@ -253,46 +284,62 @@ class MemorySNN:
         sprop = self.sprop.to_cupy(dt)
         W = cp.asarray(self.W)
 
+        # steps 횟수만큼 실행
         for t in tqdm(range(steps)):
+            # 뉴런 시뮬레이션
             V += (ge * (nprop.E_ex - V) + input.step(dt)) / nprop.tau_m
             ge += -ge / nprop.tau_e 
+            spiked = V > nprop.V_th
+            # 시냅스 시뮬레이션
             Apre += -Apre / sprop.tau_pre
             Apost += -Apost / sprop.tau_post
-            spiked = V > nprop.V_th
+            # 스파이크가 있는 뉴런들에 대해 시냅스 시뮬레이션
             V[spiked] = nprop.V_rest
             ge += W[spiked, :].sum(axis=0) * sprop.w_ratio
             Apre[spiked] += sprop.dA_pre
             Apost[spiked] += sprop.dA_post
             spike_count += spiked
 
+        # gpu에서 다시 메모리 가져와서 저장
         self.V = V.get()
         self.ge = ge.get()
         self.Apre = Apre.get()
         self.Apost = Apost.get()
 
+        # 매 step 마다 스파이크 개수 기록된 것 리턴
         return spike_count.get()
-    
+
+    # 테스트 한 사이클 정의    
     def retrieve_from_cue(self, cue: np.ndarray, tags: np.ndarray, omega, targets) -> None:
         """ retrieval from cue signal """
+        # 내부 상태변수 초기화 및 입력 정의
         self.clear()
         igen = SineWaveInputGenerator(cue, omega)
         lis = []
-        
+
+        # 0.1초씩 10번 진행
         for i in range(10):
+            # 시뮬레이션 결과 가져와서 디코딩
             spike_count = self.simulate(igen, 100, 0.01)
             fig, decoded = decode_neural_state(spike_count, tags)
+            # 그래프 저장
             fig.savefig(f'result/retrieved_cue_{i}')
             plt.close()
-            li = np.array([[psnr(target, img, data_range=img.max()-img.min()) for target in targets] for img in decoded])
+            # 시뮬레이션 결과 이미지와 입력 이미지 간 NRMSE 유사도 행렬 저장
+            li = np.array([[normalized_root_mse(target, img, data_range=img.max()-img.min()) for target in targets] for img in decoded])
             lis.append(li)
+
+        # 이미지 간 유사도 데이터 저장장
         with open('result/similar.txt', 'w') as f:
             [f.write(str(li) + '\n\n\n') for li in lis]
 
+# 결과를 email로 보내는 함수들
 import zipfile
 import os
 import smtplib
 from email.message import EmailMessage
 
+# 결과들을 1개의 zip파일로 압축
 def zip_directory(folder_path, zip_name="output.zip"):
     with zipfile.ZipFile(zip_name, 'w', zipfile.ZIP_DEFLATED) as zipf:
         for root, dirs, files in os.walk(folder_path):
@@ -303,6 +350,7 @@ def zip_directory(folder_path, zip_name="output.zip"):
                 zipf.write(full_path, arcname=arcname)
     return zip_name
 
+# 압축된 zip파일을 문자로 보냄
 def send_email_with_zip(zip_path, subject, body, sender, receiver, smtp_server, smtp_port, password):
     msg = EmailMessage()
     msg["Subject"] = subject
