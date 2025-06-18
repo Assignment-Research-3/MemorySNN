@@ -58,7 +58,7 @@ def run_single(output_name, ind = 0, mean=0.85, std=0.25, nprop=nprop_default, s
   # box cue signal 준비
 
   mem_components = encode_box_images(store_img_paths, mem_tags[:-1], mean, std, index=ind)
-  relevant_noised_cue = mem_components
+  relevant_noised_cue = mem_components[0]
   
   print("Relevant noised cue signal:")
   decode_image(relevant_noised_cue, mem_tags[:-1])
