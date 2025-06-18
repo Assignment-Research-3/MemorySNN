@@ -94,6 +94,24 @@ def decode_neural_state(spike_count: np.ndarray, tags: np.ndarray) -> plt.Figure
     fig.tight_layout()
     return fig, li
 
+def decode_image(mem_comp: np.ndarray, tags: np.ndarray) -> plt.Figure:
+    li = []
+    d = IMAGE_SIZE
+    n = len(tags)
+    fig, axes = plt.subplots(1, n, figsize=(1 * n, 1))
+    if len(tags) == 1:
+        axes = [axes]
+    for i, (tag, ax) in enumerate(zip(tags, axes)):
+        ax: plt.Axes
+        decoded = tag @ np.reshape(mem_comp[i], (-1, d ** 2))
+        decoded = np.reshape(decoded, (d, d))
+        li.append(decoded)
+        ax.imshow(decoded, cmap="gray")
+        ax.set_xticks([])
+        ax.set_yticks([])
+    fig.tight_layout()
+    return fig, li
+
 from dataclasses import dataclass
 
 @dataclass
