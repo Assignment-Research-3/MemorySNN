@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from tqdm import tqdm
 import cupy as cp
-from skimage.metrics import normalized_root_mse
+from skimage.metrics import structural_similarity as ssim
 
 IMAGE_SIZE = 32  # size of images (width & height)
 IMAGE_PIXEL_THRESHOLD = .05  # threshold for pixel values
@@ -283,7 +283,7 @@ class MemorySNN:
             fig, decoded = decode_neural_state(spike_count, tags)
             fig.savefig(f'result/retrieved_cue_{i}')
             plt.close()
-            li = np.array([[normalized_root_mse(target, img) for target in targets] for img in decoded])
+            li = np.array([[ssim(target, img, data_range=img.max()-img.min()) for target in targets] for img in decoded])
             lis.append(li)
         with open('result/similar.txt', 'w') as f:
             [f.write(str(li) + '\n\n\n') for li in lis]
