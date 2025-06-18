@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from tqdm import tqdm
 import cupy as cp
-from skimage.metrics import peak_signal_noise_ratio as psnr
+from skimage.metrics import normalized_root_mse
 
 IMAGE_SIZE = 32  # size of images (width & height)
 IMAGE_PIXEL_THRESHOLD = .05  # threshold for pixel values
