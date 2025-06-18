@@ -326,7 +326,7 @@ class MemorySNN:
             fig.savefig(f'result/retrieved_cue_{i}')
             plt.close()
             # 시뮬레이션 결과 이미지와 입력 이미지 간 NRMSE 유사도 행렬 저장
-            li = np.array([[normalized_root_mse(target, img, data_range=img.max()-img.min()) for target in targets] for img in decoded])
+            li = np.array([[normalized_root_mse(target, img)) for target in targets] for img in decoded])
             lis.append(li)
 
         # 이미지 간 유사도 데이터 저장장
