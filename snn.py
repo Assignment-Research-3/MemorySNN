@@ -30,7 +30,7 @@ sprop_default = SynapseProp(tau_pre=0.02,
 
 run_count = 1
 
-def run_single(output_name, ind = 0, mean, std=0.25, nprop=nprop_default, sprop=sprop_default, omega=1.5, email_key=None):
+def run_single(output_name, ind = 0, mean = [0.9]*5, std=0.25, nprop=nprop_default, sprop=sprop_default, omega=1.5, email_key=None):
   print('---------------------------------------------------------------------------')
   print(f'Run {run_count} : {output_name}')
   print('---------------------------------------------------------------------------')
