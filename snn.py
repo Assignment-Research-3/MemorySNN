@@ -30,7 +30,7 @@ sprop_default = SynapseProp(tau_pre=0.02,
 
 run_count = 1
 
-def run_single(output_name, ind = 0, mean=0.85, std=0.25, nprop=nprop_default, sprop=sprop_default, omega=1.5, email_key=None):
+def run_single(output_name, ind = 0, mean, std=0.25, nprop=nprop_default, sprop=sprop_default, omega=1.5, email_key=None):
   print('---------------------------------------------------------------------------')
   print(f'Run {run_count} : {output_name}')
   print('---------------------------------------------------------------------------')
@@ -40,7 +40,7 @@ def run_single(output_name, ind = 0, mean=0.85, std=0.25, nprop=nprop_default, s
   np.save("mem_tags.npy", mem_tags)
   print(f"Random generated memory tags:\n{mem_tags}")
   print(f"Memory tags shape: {mem_tags.shape}")
-  mem_components = encode_images(store_img_paths, mem_tags[:-1], [mean] * (n-1), [std] * (n-1))
+  mem_components = encode_images(store_img_paths, mem_tags[:-1], mean, [std] * (n-1))
   
   print(f"Encoded memory components shape: {mem_components.shape}")
   
@@ -57,7 +57,7 @@ def run_single(output_name, ind = 0, mean=0.85, std=0.25, nprop=nprop_default, s
   
   # box cue signal 준비
 
-  mem_components = encode_box_images(store_img_paths, mem_tags[:-1], mean, std, index=ind)
+  mem_components = encode_box_images(store_img_paths, mem_tags[:-1], mean[0], std, index=ind)
   relevant_noised_cue = np.array([mem_components[0]]*5)
   
   print("Relevant noised cue signal:")
@@ -70,7 +70,7 @@ def run_single(output_name, ind = 0, mean=0.85, std=0.25, nprop=nprop_default, s
   
   nn.clear()
   print("Retrieving images from the cue signal...")
-  imgs = encode_images_no_tag(store_img_paths, [mean] * (n-1), [std] * (n-1))
+  imgs = encode_images_no_tag(store_img_paths, mean, [std] * (n-1))
   nn.retrieve_from_cue(relevant_noised_cue , mem_tags[:-1], omega, [imgs[i].reshape(32, 32) for i in range(5)])
 
   if email_key is not None:
